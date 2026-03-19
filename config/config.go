@@ -184,49 +184,41 @@ func UpdateCfg() {
 	}
 }
 
+//go:embed src_list.json
+var defaultSrcList []byte
+
 func GetURLs() data.CurrentURLS {
-	var err error
-	tmpData := map[string]string{}
-	curURLs := data.CurrentURLS{}
+    tmpData := map[string]string{}
+    curURLs := data.CurrentURLS{}
 
-	var body []byte
+    // Создаём файл рядом с бинарником при первом запуске
+    if !isFileExist("src_list.json") {
+        err := os.WriteFile("src_list.json", defaultSrcList, 0644)
+        if err != nil {
+            slog.Error(
+                "Ошибка при создании src_list.json",
+                slog.String("Message", err.Error()),
+            )
+            return curURLs
+        }
+        slog.Info("Создан файл src_list.json")
+    }
 
-	if isFileExist("src_list.json") {
-		body, err = os.ReadFile("src_list.json")
-		if err != nil {
-			slog.Error(
-				"Ошибка при обработке файла списков URL библиотек",
-				slog.String("Message", err.Error()),
-			)
-			return curURLs
-		}
-	} else {
-		resp, err := http.Get("https://raw.githubusercontent.com/lirix360/ReadmangaGrabber/master/src_list.json")
-		if err != nil {
-			slog.Error(
-				"Ошибка при получении списков URL библиотек",
-				slog.String("Message", err.Error()),
-			)
-			return curURLs
-		}
-		defer resp.Body.Close()
+    body, err := os.ReadFile("src_list.json")
+    if err != nil {
+        slog.Error(
+            "Ошибка при чтении src_list.json",
+            slog.String("Message", err.Error()),
+        )
+        return curURLs
+    }
 
-		body, err = io.ReadAll(resp.Body)
-		if err != nil {
-			slog.Error(
-				"Ошибка при обработке загружаемых списков URL библиотек",
-				slog.String("Message", err.Error()),
-			)
-			return curURLs
-		}
-	}
+    json.Unmarshal(body, &tmpData)
 
-	json.Unmarshal(body, &tmpData)
+    curURLs.MangaLib = strings.Split(tmpData["mangalib"], ", ")
+    curURLs.ReadManga = strings.Split(tmpData["readmanga"], ", ")
 
-	curURLs.MangaLib = strings.Split(tmpData["mangalib"], ", ")
-	curURLs.ReadManga = strings.Split(tmpData["readmanga"], ", ")
-
-	return curURLs
+    return curURLs
 }
 
 func isFileExist(filePath string) bool {
