@@ -70,6 +70,8 @@ func main() {
 
 	r.HandleFunc("/checkUpdate", tools.CheckUpdate)
 	r.HandleFunc("/checkAuth", tools.CheckAuth)
+	r.HandleFunc("/getMLToken", tools.GetMLToken).Methods("GET")
+	r.HandleFunc("/saveMLToken", tools.SaveMLToken).Methods("GET")
 
 	r.HandleFunc("/saveConfig", config.SaveConfig)
 	r.HandleFunc("/loadConfig", config.LoadConfig)

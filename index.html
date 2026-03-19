@@ -258,6 +258,22 @@
                                 <div id="optMLFilePauseHelp" class="form-text">Секунд. Не менее 0.5 сек.</div>
                             </div>
                         </div>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <label for="optMLToken" class="form-label">Bearer токен MangaLib</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="optMLToken" placeholder="eyJ...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleTokenVisibility()">👁</button>
+                                </div>
+                                <div class="form-text">Токен авторизации для скачивания с MangaLib. Получить: F12 → Application → Local Storage → mangalib.me → ключ с "token".</div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="SaveMLToken();">Сохранить токен</button>
+                                <span id="mlTokenStatus" class="ms-2 form-text"></span>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -542,6 +558,33 @@
 
                 $('#optMLChPause').val(data.mangalib.timeout_chapter / 1000);
                 $('#optMLFilePause').val(data.mangalib.timeout_image / 1000);
+            });
+
+            $.get("/getMLToken", function(data) {
+                if (data.token) {
+                    $('#optMLToken').val(data.token);
+                    $('#mlTokenStatus').text('Токен загружен').css('color', 'green');
+                }
+            });
+        }
+
+        function toggleTokenVisibility() {
+            var input = $('#optMLToken');
+            input.attr('type', input.attr('type') === 'password' ? 'text' : 'password');
+        }
+
+        function SaveMLToken() {
+            var token = $('#optMLToken').val().trim();
+            if (!token) {
+                $('#mlTokenStatus').text('Токен не может быть пустым').css('color', 'red');
+                return;
+            }
+            $.get("/saveMLToken", { "token": token }, function(data) {
+                if (data.status === 'success') {
+                    $('#mlTokenStatus').text('Токен сохранён').css('color', 'green');
+                } else {
+                    $('#mlTokenStatus').text('Ошибка сохранения').css('color', 'red');
+                }
             });
         }
 
