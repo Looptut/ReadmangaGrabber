@@ -341,12 +341,16 @@ func DownloadChapter(downData data.DownloadOpts, curChapter data.ChaptersList) (
 		return nil, errors.New("noauth")
 	}
 
-	r := regexp.MustCompile(`rm_h\.readerDoInit\(\[\[(.+)\]\],\s(false|true),\s(\[.+\]).+\);`)
+	r := regexp.MustCompile(`rm_h\.reader(?:Do)?Init\([^,]+,\s*\[\[(.+)\]\],\s*(false|true),\s*(\[.+?\])[^)]*\);`)
 
 	srvList := ServersList{}
 
 	chList := r.FindStringSubmatch(string(pageBody))
-
+	
+    if len(chList) < 4 {
+        slog.Error("Не удалось найти данные страниц главы", slog.String("URL", chapterURL))
+        return nil, errors.New("не удалось распарсить страницы главы")
+    }
 	json.Unmarshal([]byte(chList[3]), &srvList)
 
 	imageParts := strings.Split(strings.Trim(chList[1], "[]"), "],[")
