@@ -1,6 +1,7 @@
 package config
 
 import (
+    	_ "embed"
 	"encoding/json"
 	"errors"
 	"io"
