@@ -310,3 +310,37 @@ func CheckSource(srcList []string, srcHost string) bool {
 
 	return false
 }
+
+func GetMLToken(w http.ResponseWriter, r *http.Request) {
+    resp := make(map[string]interface{})
+    
+    data, err := os.ReadFile("mangalib_token.txt")
+    if err == nil {
+        resp["token"] = strings.TrimSpace(string(data))
+    } else {
+        resp["token"] = ""
+    }
+    
+    respData, _ := json.Marshal(resp)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(respData)
+}
+
+func SaveMLToken(w http.ResponseWriter, r *http.Request) {
+    token := strings.TrimSpace(r.FormValue("token"))
+    
+    resp := make(map[string]interface{})
+    
+    err := os.WriteFile("mangalib_token.txt", []byte(token), 0644)
+    if err != nil {
+        slog.Error("Ошибка при сохранении токена", slog.String("Message", err.Error()))
+        resp["status"] = "error"
+    } else {
+        resp["status"] = "success"
+        slog.Info("Токен MangaLib сохранён")
+    }
+    
+    respData, _ := json.Marshal(resp)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(respData)
+}
